@@ -6,5 +6,5 @@ all: switch
 outlet: rc-switch/RCSwitch.o outlet.o
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) $+ -o $@ -lwiringPi
 
-switch: NewRemoteTransmitter.o switch.o
+switch: NewRemoteTransmitter/NewRemoteTransmitter.o switch.o
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) $+ -o $@ -lwiringPi
