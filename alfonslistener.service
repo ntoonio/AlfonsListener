@@ -1,0 +1,11 @@
+[Unit]
+Description=Alfons Listener
+After=multi-user.target
+
+[Service]
+Type=simple
+ExecStart=/home/pi/alfonslistener/venv/bin/python /home/pi/alfonslistener/app.py
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
