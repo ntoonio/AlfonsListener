@@ -1,0 +1,5 @@
+switch
+outlet
+*.o
+rc-switch/
+WiringPi/

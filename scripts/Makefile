@@ -3,8 +3,8 @@ CXXFLAGS=-DRPI
 all: outlet
 all: switch
 
-switch: rc-switch/RCSwitch.o switch.o
+outlet: rc-switch/RCSwitch.o outlet.o
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) $+ -o $@ -lwiringPi
 
-outlet: NewRemoteTransmitter.o outlet.o
+switch: NewRemoteTransmitter.o switch.o
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) $+ -o $@ -lwiringPi

@@ -1,7 +1,7 @@
 commands:
 - subscribe: anton/second_light
-  script: "scripts/switch C %state% a 1 2"
+  script: "scripts/outlet C %state% a 1 2"
 - subscribe: anton/main_light
-  script: "scripts/outlet 1 %state%"
+  script: "scripts/switch 1 %state%"
 - subscribe: hanna/second_light
-  script: "scripts/switch C %state% a 1 3"
+  script: "scripts/outlet C %state% a 1 3"
