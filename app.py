@@ -58,7 +58,7 @@ def onDisconnect(client, userdata, rc):
 
 logger.info("Did setup")
 
-iot = AlfonsIoT.AlfonsIoT(host="alfons.antoon.io", port=443, username="iot-rf-listener", password="iot", ssl=True)
+iot = alfonsiot.AlfonsIoT(host="alfons.antoon.io", port=443, username="iot-rf-listener", password="iot", ssl=True)
 iot.mqttOnConnect = onConnect
 iot.mqttOnDisconnect = onDisconnect
 iot.start()
