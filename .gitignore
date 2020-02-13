@@ -1,5 +1,8 @@
 .DS_Store
 
 *.log
+config.yaml
+
+scripts/
 
 venv/

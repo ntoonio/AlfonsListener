@@ -20,6 +20,7 @@ fh.setFormatter(formatter)
 ch.setFormatter(formatter)
 logger.addHandler(fh)
 logger.addHandler(ch)
+# - - - - -
 
 with open(PATH + "config.yaml") as f:
 	config = yaml.safe_load(f)
@@ -34,18 +35,21 @@ def switch(data, command):
 	args = x[1:]
 	
 	cmd = [executable, *args]
-	logger.info("Executing " + " ".join(cmd))
+	logger.info("Executing '$ " + " ".join(cmd) + "'")
 
 	result = subprocess.run(cmd, stdout=subprocess.PIPE)
 	r = result.stdout
-	logger.info("Exited with '{}'".format(r.decode("utf-8").replace("\n", "\\n")))
+	logger.info("Exited with '{}'".format(r.decode("utf-8").replace("\n", " \\n ")))
 
 def onMessage(topic, payload):
 	logger.info("Got message at: " + str(topic))
 
 	for c in config["commands"]:
 		if c["subscribe"] == topic:
-			threading.Thread(target=switch, args=(payload, c["script"],)).start()
+			try:
+				threading.Thread(target=switch, args=(payload, c["script"],)).start()
+			except Exception as e:
+				logger.info("Exited with exception: \n\t{}".format(e))
 
 def onConnect(client, userdata, flags, rc):
 	logger.info("Connected!")
