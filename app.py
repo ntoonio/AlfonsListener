@@ -27,13 +27,13 @@ with open(PATH + "config.yaml") as f:
 
 def switch(data, command):
 	state = int(data == "ON")
-	
+
 	command = command.replace("%state%", str(state))
 	x = split(command)
-	
+
 	executable = PATH + x[0]
 	args = x[1:]
-	
+
 	cmd = [executable, *args]
 	logger.info("Executing '$ " + " ".join(cmd) + "'")
 
@@ -60,9 +60,9 @@ def onConnect(client, userdata, flags, rc):
 def onDisconnect(client, userdata, rc):
 	logger.info("Disconnected... rc: " + str(rc))
 
-logger.info("Did setup")
+info = config["info"]
 
-iot = alfonsiot.AlfonsIoT(host="alfons.antoon.io", port=443, username="iot-rf-listener", password="iot", ssl=True)
+iot = alfonsiot.AlfonsIoT(host=info["host"], port=info["port"], username=info["username"], password=info["password"], ssl=info["ssl"])
 iot.mqttOnConnect = onConnect
 iot.mqttOnDisconnect = onDisconnect
 iot.start()
@@ -73,4 +73,3 @@ try:
 	l.acquire()
 except KeyboardInterrupt:
 	logger.info("Keyboard interrupt - exiting")
-

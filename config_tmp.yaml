@@ -1,7 +1,0 @@
-commands:
-- subscribe: anton/second_light
-  script: "./scripts/Nexa-433MHz/sender 61086057 0 1 2 %state%"
-- subscribe: anton/main_light
-  script: "./scripts/Nexa-433MHz/sender 61086057 0 1 1 %state%"
-- subscribe: hanna/second_light
-  script: "./scripts/Nexa-433MHz/sender 61086057 0 2 1 %state%"

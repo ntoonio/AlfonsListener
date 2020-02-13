@@ -1,2 +1,2 @@
-alfonsiot
+https://codeload.github.com/ntoonio/AlfonsIoT/zip/master#egg=alfonsiot
 pyyaml
