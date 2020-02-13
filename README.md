@@ -5,10 +5,10 @@ Simple program for listening on a topic and when it's received running a script.
 ### config.yaml
 	info:
 	    host: "host"
-		port: 443
-		username: "username"
-		password: "iot"
-		ssl: True
+	    port: 443
+	    username: "username"
+	    password: "iot"
+	    ssl: True
 
 	commands:
 	  - subscribe: topic
