@@ -10,7 +10,7 @@ rm /etc/systemd/system/"$name".service
 
 service=$(cat alfonslistener.service) 
 cat >/etc/systemd/system/$name.service <<EOL
-${service/"%path%"/$DIR}
+${service//"%path%"/$DIR}
 EOL
 
 chmod 644 /etc/systemd/system/"$name".service
