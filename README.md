@@ -4,16 +4,16 @@ Simple program for listening on a topic and when it's received running a script.
 ## Setup
 ### config.yaml
 	info:
-	    host: "host"
-	    port: 443
+	    server: "host:port"
 	    username: "username"
 	    password: "iot"
 	    ssl: True
 
 	commands:
-	  - subscribe: topic
+	  - topic: "topic"
 	    script: "script-to-run"
-	  - subscribe: topic2
+	  - topic: "topic2"
+	    python: "module:function"
 	    script: "script-to-run2"
 
 ### Creating a daemon

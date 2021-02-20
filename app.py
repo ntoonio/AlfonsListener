@@ -1,17 +1,23 @@
 import os
-import threading
-import yaml
 import subprocess
-from shlex import split
+import threading
 import logging
+import importlib
+
+import yaml
+
 import alfonsiot
 
-PATH = os.path.dirname(os.path.realpath(__file__)) + "/"
+CONF_PATH = os.path.expanduser("~/.alfonslistener/")
+SCRIPT_PATH = os.path.join(CONF_PATH, "config.yaml")
+
+if not os.path.exists(CONF_PATH):
+	os.makedirs(CONF_PATH)
 
 # Set up logging
 logger = logging.getLogger("listener")
 logger.setLevel(logging.DEBUG)
-fh = logging.FileHandler(PATH + "listener.log")
+fh = logging.FileHandler(os.path.join(CONF_PATH, "log.log"))
 fh.setLevel(logging.DEBUG)
 ch = logging.StreamHandler()
 ch.setLevel(logging.DEBUG)
@@ -22,54 +28,85 @@ logger.addHandler(fh)
 logger.addHandler(ch)
 # - - - - -
 
-with open(PATH + "config.yaml") as f:
-	config = yaml.safe_load(f)
-
-def switch(data, command):
-	state = int(data == "ON")
-
-	command = command.replace("%state%", str(state))
-	x = split(command)
-
-	executable = PATH + x[0]
-	args = x[1:]
-
-	cmd = [executable, *args]
-	logger.info("Executing '$ " + " ".join(cmd) + "'")
-
-	result = subprocess.run(cmd, stdout=subprocess.PIPE)
-	r = result.stdout
-	logger.info("Exited with '{}'".format(r.decode("utf-8").replace("\n", " \\n ")))
-
-def onMessage(topic, payload):
-	logger.info("Got message at: " + str(topic))
-
-	for c in config["commands"]:
-		if c["subscribe"] == topic:
-			try:
-				threading.Thread(target=switch, args=(payload, c["script"],)).start()
-			except Exception as e:
-				logger.info("Exited with exception: \n\t{}".format(e))
-
-def onConnect(client, userdata, flags, rc):
+def _onConnect(iot):
 	logger.info("Connected!")
 
 	for c in config["commands"]:
-		iot.subscribe(c["subscribe"], onMessage)
+		logger.debug("Subscribing to " + c["topic"])
+		iot.subscribe(c["topic"])
 
-def onDisconnect(client, userdata, rc):
-	logger.info("Disconnected... rc: " + str(rc))
+def _onMessage(iot, topic, payload):
+	for c in config["commands"]:	
+		if c["topic"] == topic:
+			pReturn = None
 
-info = config["info"]
+			if "python" in c:
+				p = c["python"].split(":", 1)
+				pName = p[0]
+				pFunc = p[1]
+				pLocation = os.path.join(CONF_PATH, "scripts", pName + ".py")
+				
+				try:
+					pSpec = importlib.util.spec_from_file_location(pName, pLocation)
+					pModule = importlib.util.module_from_spec(pSpec)
+					pSpec.loader.exec_module(pModule)
+				except Exception as e:
+					logger.warning("Couldn't import the python file. Exception '{}'".format(e))
 
-iot = alfonsiot.AlfonsIoT(host=info["host"], port=info["port"], username=info["username"], password=info["password"], ssl=info["ssl"])
-iot.mqttOnConnect = onConnect
-iot.mqttOnDisconnect = onDisconnect
-iot.start()
+				logger.info("Running python script '{}'".format(c["python"]))
 
-try:
-	l = threading.Lock()
-	l.acquire()
-	l.acquire()
-except KeyboardInterrupt:
-	logger.info("Keyboard interrupt - exiting")
+				try:
+					pReturn = str(getattr(pModule, pFunc)(topic, payload))
+				except Exception as e:
+					logger.warning("Python script crashed with exception '{}'".format(e))
+				else:
+					logger.debug("Python script excited with '{}'".format(pReturn))
+
+			if "script" in c and "python" in c and pReturn == None:
+				logger.info("Python script returned with None, script will be skipped...")
+
+			if "script" in c:
+				sExec, sArgs = c["script"].split(":", 1)
+
+				cmd = os.path.expanduser(sExec) + " " + sArgs .replace("%payload%", payload if not pReturn else pReturn)
+
+				logger.info("Executing '$ " + cmd + "'")
+				threading.Thread(target=_runScript, args=(cmd,)).start()
+
+def _runScript(cmd):
+	try:
+		result = subprocess.run(cmd, stdout=subprocess.PIPE, shell=True)
+	except Exception as e:
+		logger.warning("Exited with exception: \n\t{}".format(e))
+	else:
+		logger.debug("Exited with '{}'".format(result.stdout.decode("utf-8").replace("\n", " \\n ")))
+
+def main():
+	global config
+
+	if not os.path.exists(SCRIPT_PATH):
+		logger.info("No 'config.yaml' in ~/.alfonslistener")
+		return
+	
+	with open(SCRIPT_PATH) as f:
+		config = yaml.safe_load(f)
+
+	info = config["info"]
+
+	_username = info["username"] if "username" in info else None
+	_password = info["password"] if "password" in info else None
+
+	iot = alfonsiot.start(server=info["server"], username=_username, password=_password)
+
+	iot.onConnect = _onConnect
+	iot.onMessage = _onMessage
+
+	try:
+		lock = threading.Lock()
+		lock.acquire()
+		lock.acquire()
+	except KeyboardInterrupt:
+		pass
+
+if __name__ == "__main__":
+	main()
