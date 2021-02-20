@@ -8,16 +8,18 @@ import yaml
 
 import alfonsiot
 
-CONF_PATH = os.path.expanduser("~/.alfonslistener/")
-SCRIPT_PATH = os.path.join(CONF_PATH, "config.yaml")
+BASE_PATH = "/usr/local/alfonslistener"
+CONF_PATH = os.path.join(BASE_PATH, "config.yaml")
+SCRIPT_PATH = os.path.join(BASE_PATH, "scripts")
 
-if not os.path.exists(CONF_PATH):
-	os.makedirs(CONF_PATH)
+# Testing SCRIPT_PATH since it's the deepest folder
+if not os.path.exists(SCRIPT_PATH):
+	os.makedirs(SCRIPT_PATH)
 
 # Set up logging
 logger = logging.getLogger("listener")
 logger.setLevel(logging.DEBUG)
-fh = logging.FileHandler(os.path.join(CONF_PATH, "log.log"))
+fh = logging.FileHandler(os.path.join(BASE_PATH, "log.log"))
 fh.setLevel(logging.DEBUG)
 ch = logging.StreamHandler()
 ch.setLevel(logging.DEBUG)
@@ -44,7 +46,7 @@ def _onMessage(iot, topic, payload):
 				p = c["python"].split(":", 1)
 				pName = p[0]
 				pFunc = p[1]
-				pLocation = os.path.join(CONF_PATH, "scripts", pName + ".py")
+				pLocation = os.path.join(BASE_PATH, "scripts", pName + ".py")
 				
 				try:
 					pSpec = importlib.util.spec_from_file_location(pName, pLocation)
@@ -84,11 +86,11 @@ def _runScript(cmd):
 def main():
 	global config
 
-	if not os.path.exists(SCRIPT_PATH):
-		logger.info("No 'config.yaml' in ~/.alfonslistener")
+	if not os.path.exists(CONF_PATH) and os.path.isfile(CONF_PATH):
+		logger.info("No config file found at '{}'".format(CONF_PATH))
 		return
 	
-	with open(SCRIPT_PATH) as f:
+	with open(CONF_PATH) as f:
 		config = yaml.safe_load(f)
 
 	info = config["info"]
