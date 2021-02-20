@@ -8,7 +8,7 @@ with open(PATH + "README.md", "r") as fh:
 
 setuptools.setup(
 	name="alfonslistener",
-	version="0.0.1",
+	version="0.0.2",
 	author="Anton Lindroth",
 	author_email="ntoonio@gmail.com",
 	description="Package to run a script when a packet is published to a topic on Alfons",

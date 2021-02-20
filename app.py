@@ -38,6 +38,8 @@ def _onConnect(iot):
 		iot.subscribe(c["topic"])
 
 def _onMessage(iot, topic, payload):
+	logger.debug("Received message on topic '{}', with payload '{}'".format(topic, payload)
+
 	for c in config["commands"]:	
 		if c["topic"] == topic:
 			pReturn = None
@@ -68,7 +70,7 @@ def _onMessage(iot, topic, payload):
 				logger.info("Python script returned with None, script will be skipped...")
 
 			if "script" in c:
-				sExec, sArgs = c["script"].split(":", 1)
+				sExec, sArgs = c["script"].split(" ", 1)
 
 				cmd = os.path.expanduser(sExec) + " " + sArgs .replace("%payload%", payload if not pReturn else pReturn)
 
@@ -86,7 +88,7 @@ def _runScript(cmd):
 def main():
 	global config
 
-	if not os.path.exists(CONF_PATH) and os.path.isfile(CONF_PATH):
+	if not os.path.exists(CONF_PATH) or not os.path.isfile(CONF_PATH):
 		logger.info("No config file found at '{}'".format(CONF_PATH))
 		return
 	
