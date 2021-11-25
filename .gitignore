@@ -5,6 +5,10 @@ build/
 dist/
 *.egg-info/
 
+*.log
 *.pyc
 __pycache__/
 .vscode/
+
+config.yaml
+scripts/

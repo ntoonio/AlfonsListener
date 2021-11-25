@@ -38,6 +38,8 @@ def _onConnect(iot):
 		iot.subscribe(c["topic"])
 
 def _onMessage(iot, topic, payload):
+	logger.debug("Received message on topic '{}', with payload '{}'".format(topic, payload))
+
 	for c in config["commands"]:	
 		if c["topic"] == topic:
 			pReturn = None
@@ -68,7 +70,7 @@ def _onMessage(iot, topic, payload):
 				logger.info("Python script returned with None, script will be skipped...")
 
 			if "script" in c:
-				sExec, sArgs = c["script"].split(":", 1)
+				sExec, sArgs = c["script"].split(" ", 1)
 
 				cmd = os.path.expanduser(sExec) + " " + sArgs .replace("%payload%", payload if not pReturn else pReturn)
 
@@ -86,24 +88,29 @@ def _runScript(cmd):
 def main():
 	global config
 
-	if not os.path.exists(CONF_PATH) and os.path.isfile(CONF_PATH):
+	if not os.path.exists(CONF_PATH) or not os.path.isfile(CONF_PATH):
 		logger.info("No config file found at '{}'".format(CONF_PATH))
 		return
 	
 	with open(CONF_PATH) as f:
 		config = yaml.safe_load(f)
+	
+	logger.info("Read config")
 
 	info = config["info"]
 
 	_username = info["username"] if "username" in info else None
 	_password = info["password"] if "password" in info else None
 
-	iot = alfonsiot.start(server=info["server"], username=_username, password=_password)
+	logger.info("Connecting...")
+	iot = alfonsiot.AlfonsIoT(server=info["server"], username=_username, password=_password)
+	iot.start()
 
 	iot.onConnect = _onConnect
 	iot.onMessage = _onMessage
 
 	try:
+		logger.info("Locking...")
 		lock = threading.Lock()
 		lock.acquire()
 		lock.acquire()
